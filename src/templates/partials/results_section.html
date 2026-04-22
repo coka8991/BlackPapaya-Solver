@@ -1,0 +1,43 @@
+<article class="panel">
+    <div class="section-head">
+        <div>
+            <h2>Resultado del solver</h2>
+            <p>La propuesta optimizada se mantiene separada del roster cargado para no mezclar estado base y asignación
+                calculada.</p>
+        </div>
+    </div>
+
+    {% if result_cards %}
+    <div class="stack">
+        {% for card in result_cards %}
+        <section class="result-card">
+            <div class="section-head">
+                <h2>{{ card.boss }}</h2>
+                <p>{{ card.total }} asignaciones</p>
+            </div>
+            <div class="result-groups">
+                {% for group in card.groups %}
+                <section class="result-group">
+                    <strong>{{ group.role }}</strong>
+                    {% if group.players %}
+                    <ul>
+                        {% for player in group.players %}
+                        <li>
+                            <span style="color: {{ player.color }};">{{ player.icon }} {{ player.name }}</span>
+                            <span class="muted">{{ player.class }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty">Sin jugadores</div>
+                    {% endif %}
+                </section>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">Todavía no hay una propuesta calculada.</div>
+    {% endif %}
+</article>

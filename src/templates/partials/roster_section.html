@@ -1,0 +1,103 @@
+<article class="panel">
+    <div class="section-head">
+        <div>
+            <h2>Restricciones por boss</h2>
+            <p>Los estados son exclusivos por pareja jugador-boss: libre, `force in` o `force out`.</p>
+        </div>
+        <p>{{ roster.players | length }} jugadores disponibles · {{ roster_cards | length }} bosses activos</p>
+    </div>
+
+    {% if excluded_boss_cards %}
+    <div class="boss-summary">
+        <div>
+            <strong>Bosses excluidos de la planificación</strong>
+            <p class="muted">No aparecen en restricciones ni se envían al solver hasta restaurarlos.</p>
+        </div>
+        <div class="boss-meta">
+            {% for card in excluded_boss_cards %}
+            <form hx-post="/bosses/include" hx-target="#app-shell" hx-swap="outerHTML">
+                <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                <button class="button-ghost" type="submit">Restaurar {{ card.boss }}</button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if roster_cards %}
+    <div class="boss-list">
+        {% for card in roster_cards %}
+        <article class="boss-card">
+            <div class="boss-summary">
+                <div>
+                    <strong>{{ card.boss }}</strong>
+                </div>
+                <div class="boss-meta">
+                    <span class="pill">{{ card.assigned_count }} asignados cargados</span>
+                    <span class="pill">{{ card.forced_count }} restricciones</span>
+                    <form hx-post="/bosses/exclude" hx-target="#app-shell" hx-swap="outerHTML">
+                        <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                        <button class="button-ghost" type="submit">Excluir boss</button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jugador</th>
+                            <th>Rol</th>
+                            <th>Spec</th>
+                            <th>Restricción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in card.rows %}
+                        <tr>
+                            <td>
+                                <div class="player-name" style="--class-color: {{ row.color }};">
+                                    <strong>{{ row.name }}</strong>
+                                    <span class="muted">{{ row.class }} · {{ row.realm }}</span>
+                                    {% if row.assigned %}
+                                    <span class="assigned-flag">Presente en `state.assignments`</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="role-badge">{{ row.role_icon }} {{ row.role }}</span>
+                            </td>
+                            <td class="muted">{{ row.spec }}</td>
+                            <td>
+                                <form class="restriction-controls" hx-post="/restrictions" hx-target="#app-shell"
+                                    hx-swap="outerHTML">
+                                    <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                                    <input type="hidden" name="player_key" value="{{ row.player_key }}">
+                                    <button
+                                        class="{% if not row.restriction %}is-active-free{% else %}button-ghost{% endif %}"
+                                        type="submit" name="restriction_type" value="">Libre</button>
+                                    <button
+                                        class="{% if row.restriction == 'force_in' %}is-active-in{% else %}button-ghost{% endif %}"
+                                        type="submit" name="restriction_type" value="force_in">Force in</button>
+                                    <button
+                                        class="{% if row.restriction == 'force_out' %}is-active-out{% else %}button-ghost{% endif %}"
+                                        type="submit" name="restriction_type" value="force_out">Force out</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        {% if roster.bosses %}
+        No hay bosses activos. Restaura alguno para volver a marcar restricciones y planificarlo.
+        {% else %}
+        Carga una API key válida para empezar a marcar restricciones.
+        {% endif %}
+    </div>
+    {% endif %}
+</article>

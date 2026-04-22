@@ -1,0 +1,66 @@
+<section id="app-shell" class="grid">
+    <aside class="panel side-panel">
+        <div>
+            <h2>Cargar roster</h2>
+            <p>El estado vive en memoria por proceso. Al reiniciar el servidor se pierde.</p>
+        </div>
+
+        <form class="actions" hx-post="/load" hx-target="#app-shell" hx-swap="outerHTML">
+            <label class="field-label" for="api_key">API key de WowAudit</label>
+            <input id="api_key" type="password" name="api_key" value="{{ state.api_key }}" placeholder="Bearer ..."
+                autocomplete="off">
+            <button class="button-primary" type="submit">Cargar roster</button>
+        </form>
+
+        <form hx-post="/solve" hx-target="#app-shell" hx-swap="outerHTML">
+            <button class="button-secondary" type="submit">Ejecutar solver</button>
+            <span class="loading">Procesando…</span>
+        </form>
+
+        {% include "partials/messages.html" %}
+
+        <div class="stats-grid">
+            <article class="stat">
+                <strong>{{ stats.players }}</strong>
+                <span>Jugadores</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.bosses }}</strong>
+                <span>Bosses activos</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.excluded_bosses }}</strong>
+                <span>Bosses excluidos</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.tank }}</strong>
+                <span>Tanks</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.heal }}</strong>
+                <span>Heals</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.ranged }}</strong>
+                <span>Ranged</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.melee }}</strong>
+                <span>Melee</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.force_in }}</strong>
+                <span>Force in</span>
+            </article>
+            <article class="stat">
+                <strong>{{ stats.force_out }}</strong>
+                <span>Force out</span>
+            </article>
+        </div>
+    </aside>
+
+    <section class="stack">
+        {% include "partials/roster_section.html" %}
+        {% include "partials/results_section.html" %}
+    </section>
+</section>

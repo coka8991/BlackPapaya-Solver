@@ -24,5 +24,7 @@ COPY . .
 # Cambiar cwd a src
 WORKDIR /app/src
 
+EXPOSE 8000
+
 # Comando por defecto
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -2,7 +2,7 @@
     <div class="section-head">
         <div>
             <h2>Restricciones por boss</h2>
-            <p>Los estados son exclusivos por pareja jugador-boss: libre, `force in` o `force out`.</p>
+            <p>Un solo control por fila alterna entre libre, force in y force out.</p>
         </div>
         <p>{{ roster.players | length }} jugadores disponibles · {{ roster_cards | length }} bosses activos</p>
     </div>
@@ -42,45 +42,36 @@
                 </div>
             </div>
             <div class="table-wrap">
-                <table>
+                <table class="restriction-table">
                     <thead>
                         <tr>
                             <th>Jugador</th>
                             <th>Rol</th>
-                            <th>Spec</th>
-                            <th>Restricción</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in card.rows %}
-                        <tr>
+                        <tr class="restriction-row restriction-row-{{ row.restriction_tone }}">
                             <td>
-                                <div class="player-name" style="--class-color: {{ row.color }};">
+                                <div class="player-name player-name-compact" style="--class-color: {{ row.color }};">
                                     <strong>{{ row.name }}</strong>
-                                    <span class="muted">{{ row.class }} · {{ row.realm }}</span>
-                                    {% if row.assigned %}
-                                    <span class="assigned-flag">Presente en `state.assignments`</span>
-                                    {% endif %}
                                 </div>
                             </td>
                             <td>
                                 <span class="role-badge">{{ row.role_icon }} {{ row.role }}</span>
                             </td>
-                            <td class="muted">{{ row.spec }}</td>
                             <td>
-                                <form class="restriction-controls" hx-post="/restrictions" hx-target="#app-shell"
+                                <form class="cycle-form" hx-post="/restrictions" hx-target="#app-shell"
                                     hx-swap="outerHTML">
                                     <input type="hidden" name="boss_name" value="{{ card.boss }}">
                                     <input type="hidden" name="player_key" value="{{ row.player_key }}">
-                                    <button
-                                        class="{% if not row.restriction %}is-active-free{% else %}button-ghost{% endif %}"
-                                        type="submit" name="restriction_type" value="">Libre</button>
-                                    <button
-                                        class="{% if row.restriction == 'force_in' %}is-active-in{% else %}button-ghost{% endif %}"
-                                        type="submit" name="restriction_type" value="force_in">Force in</button>
-                                    <button
-                                        class="{% if row.restriction == 'force_out' %}is-active-out{% else %}button-ghost{% endif %}"
-                                        type="submit" name="restriction_type" value="force_out">Force out</button>
+                                    <input type="hidden" name="restriction_action" value="cycle">
+                                    <button class="cycle-button cycle-button-{{ row.restriction_tone }}" type="submit"
+                                        title="Siguiente: {{ row.restriction_next_label }}">
+                                        <span>{{ row.restriction_label }}</span>
+                                        <small>{{ row.restriction_next_label }}</small>
+                                    </button>
                                 </form>
                             </td>
                         </tr>

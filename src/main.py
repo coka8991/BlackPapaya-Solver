@@ -59,6 +59,8 @@ class WebAppState:
 state = WebAppState()
 app = FastAPI(title="Black Papaya Solver")
 
+RESTRICTION_CYCLE = (None, "force_in", "force_out")
+
 
 def build_template_context(request: Request) -> dict:
     return {
@@ -126,6 +128,7 @@ def update_restriction(
     boss_name: str = Form(...),
     player_key: str = Form(...),
     restriction_type: str = Form(""),
+    restriction_action: str = Form("set"),
 ) -> HTMLResponse:
     if not state.roster.has_boss(boss_name):
         set_feedback(error=f"Boss desconocido: {boss_name}")
@@ -134,7 +137,13 @@ def update_restriction(
         set_feedback(error=f"Jugador desconocido: {player_key}")
         return render_page(request, "partials/app_shell.html")
 
-    normalized = restriction_type if restriction_type in {"force_in", "force_out"} else None
+    current = state.roster.restriction_type_for(player_key, boss_name)
+    if restriction_action == "cycle":
+        current_index = RESTRICTION_CYCLE.index(current)
+        normalized = RESTRICTION_CYCLE[(current_index + 1) % len(RESTRICTION_CYCLE)]
+    else:
+        normalized = restriction_type if restriction_type in {"force_in", "force_out"} else None
+
     state.roster.set_restriction(player_key, boss_name, normalized)
     state.solver_result = None
 

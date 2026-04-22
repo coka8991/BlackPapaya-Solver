@@ -8,6 +8,24 @@ from solver import SolverConfig, solve_roster
 
 
 VALID_ROLES = {"Tank", "Heal", "Ranged", "Melee"}
+RESTRICTION_CYCLE = (None, "force_in", "force_out")
+RESTRICTION_META: dict[str | None, dict[str, str]] = {
+    None: {
+        "label": "Libre",
+        "tone": "free",
+        "next_label": "Marcar force in",
+    },
+    "force_in": {
+        "label": "Force in",
+        "tone": "in",
+        "next_label": "Marcar force out",
+    },
+    "force_out": {
+        "label": "Force out",
+        "tone": "out",
+        "next_label": "Limpiar restriccion",
+    },
+}
 
 
 def normalize_role(role: str | None) -> str:
@@ -136,20 +154,22 @@ def build_sidebar_stats(state: RosterState) -> dict[str, int]:
 
 def build_boss_rows(state: RosterState, boss: str) -> list[dict[str, str | bool | None]]:
     rows: list[dict[str, str | bool | None]] = []
-    assigned_keys = set(state.assignments.get(boss, []))
     for player in state.ordered_players():
+        restriction = state.restriction_type_for(player.key, boss)
+        current_index = RESTRICTION_CYCLE.index(restriction)
+        next_restriction = RESTRICTION_CYCLE[(current_index + 1) % len(RESTRICTION_CYCLE)]
+        restriction_meta = RESTRICTION_META[restriction]
         rows.append(
             {
                 "player_key": player.key,
                 "name": player.name,
-                "realm": player.realm,
-                "class": player.cls,
                 "role": player.role,
                 "role_icon": ROLE_ICON.get(player.role, "⚔"),
-                "spec": player.spec or "—",
                 "color": player.color,
-                "restriction": state.restriction_type_for(player.key, boss),
-                "assigned": player.key in assigned_keys,
+                "restriction": restriction,
+                "restriction_label": restriction_meta["label"],
+                "restriction_tone": restriction_meta["tone"],
+                "restriction_next_label": RESTRICTION_META[next_restriction]["label"],
             }
         )
     return rows
@@ -163,7 +183,7 @@ def build_roster_cards(state: RosterState) -> list[dict[str, object]]:
             {
                 "boss": boss,
                 "rows": rows,
-                "assigned_count": sum(1 for row in rows if row["assigned"]),
+                "assigned_count": len(state.assignments.get(boss, [])),
                 "forced_count": sum(1 for row in rows if row["restriction"]),
             }
         )

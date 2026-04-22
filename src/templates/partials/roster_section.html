@@ -4,91 +4,102 @@
             <h2>Restricciones por boss</h2>
             <p>Un solo control por fila alterna entre libre, force in y force out.</p>
         </div>
-        <p>{{ roster.players | length }} jugadores disponibles · {{ roster_cards | length }} bosses activos</p>
+        <div class="section-head-actions">
+            <p>{{ roster.players | length }} jugadores disponibles · {{ roster_cards | length }} bosses activos</p>
+            <button class="collapse-toggle" type="button" aria-expanded="true"
+                onclick="toggleRestrictionsSection(this, 'restrictions-content')">
+                <span class="label-collapse">Minimizar</span>
+                <span class="label-expand">Maximizar</span>
+            </button>
+        </div>
     </div>
 
-    {% if excluded_boss_cards %}
-    <div class="boss-summary">
-        <div>
-            <strong>Bosses excluidos de la planificación</strong>
-            <p class="muted">No aparecen en restricciones ni se envían al solver hasta restaurarlos.</p>
+    <div id="restrictions-content" class="collapsible-content">
+
+        {% if excluded_boss_cards %}
+        <div class="boss-summary">
+            <div>
+                <strong>Bosses excluidos de la planificación</strong>
+                <p class="muted">No aparecen en restricciones ni se envían al solver hasta restaurarlos.</p>
+            </div>
+            <div class="boss-meta">
+                {% for card in excluded_boss_cards %}
+                <form hx-post="/bosses/include" hx-target="#app-shell" hx-swap="outerHTML">
+                    <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                    <button class="button-ghost" type="submit">Restaurar {{ card.boss }}</button>
+                </form>
+                {% endfor %}
+            </div>
         </div>
-        <div class="boss-meta">
-            {% for card in excluded_boss_cards %}
-            <form hx-post="/bosses/include" hx-target="#app-shell" hx-swap="outerHTML">
-                <input type="hidden" name="boss_name" value="{{ card.boss }}">
-                <button class="button-ghost" type="submit">Restaurar {{ card.boss }}</button>
-            </form>
+        {% endif %}
+
+        {% if roster_cards %}
+        <div class="boss-list">
+            {% for card in roster_cards %}
+            <article class="boss-card">
+                <div class="boss-summary">
+                    <div>
+                        <strong>{{ card.boss }}</strong>
+                    </div>
+                    <div class="boss-meta">
+                        <span class="pill">{{ card.assigned_count }} asignados cargados</span>
+                        <span class="pill">{{ card.forced_count }} restricciones</span>
+                        <form hx-post="/bosses/exclude" hx-target="#app-shell" hx-swap="outerHTML">
+                            <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                            <button class="button-ghost" type="submit">Excluir boss</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="restriction-table">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in card.rows %}
+                            <tr class="restriction-row restriction-row-{{ row.restriction_tone }}">
+                                <td>
+                                    <div class="player-name player-name-compact"
+                                        style="--class-color: {{ row.color }};">
+                                        <strong>{{ row.name }}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="role-badge">{{ row.role_icon }} {{ row.role }}</span>
+                                </td>
+                                <td>
+                                    <form class="cycle-form" hx-post="/restrictions" hx-target="#app-shell"
+                                        hx-swap="outerHTML">
+                                        <input type="hidden" name="boss_name" value="{{ card.boss }}">
+                                        <input type="hidden" name="player_key" value="{{ row.player_key }}">
+                                        <input type="hidden" name="restriction_action" value="cycle">
+                                        <button class="cycle-button cycle-button-{{ row.restriction_tone }}"
+                                            type="submit" title="Siguiente: {{ row.restriction_next_label }}">
+                                            <span>{{ row.restriction_label }}</span>
+                                            <small>{{ row.restriction_next_label }}</small>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
             {% endfor %}
         </div>
-    </div>
-    {% endif %}
-
-    {% if roster_cards %}
-    <div class="boss-list">
-        {% for card in roster_cards %}
-        <article class="boss-card">
-            <div class="boss-summary">
-                <div>
-                    <strong>{{ card.boss }}</strong>
-                </div>
-                <div class="boss-meta">
-                    <span class="pill">{{ card.assigned_count }} asignados cargados</span>
-                    <span class="pill">{{ card.forced_count }} restricciones</span>
-                    <form hx-post="/bosses/exclude" hx-target="#app-shell" hx-swap="outerHTML">
-                        <input type="hidden" name="boss_name" value="{{ card.boss }}">
-                        <button class="button-ghost" type="submit">Excluir boss</button>
-                    </form>
-                </div>
-            </div>
-            <div class="table-wrap">
-                <table class="restriction-table">
-                    <thead>
-                        <tr>
-                            <th>Jugador</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in card.rows %}
-                        <tr class="restriction-row restriction-row-{{ row.restriction_tone }}">
-                            <td>
-                                <div class="player-name player-name-compact" style="--class-color: {{ row.color }};">
-                                    <strong>{{ row.name }}</strong>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="role-badge">{{ row.role_icon }} {{ row.role }}</span>
-                            </td>
-                            <td>
-                                <form class="cycle-form" hx-post="/restrictions" hx-target="#app-shell"
-                                    hx-swap="outerHTML">
-                                    <input type="hidden" name="boss_name" value="{{ card.boss }}">
-                                    <input type="hidden" name="player_key" value="{{ row.player_key }}">
-                                    <input type="hidden" name="restriction_action" value="cycle">
-                                    <button class="cycle-button cycle-button-{{ row.restriction_tone }}" type="submit"
-                                        title="Siguiente: {{ row.restriction_next_label }}">
-                                        <span>{{ row.restriction_label }}</span>
-                                        <small>{{ row.restriction_next_label }}</small>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty">
-        {% if roster.bosses %}
-        No hay bosses activos. Restaura alguno para volver a marcar restricciones y planificarlo.
         {% else %}
-        Carga una API key válida para empezar a marcar restricciones.
+        <div class="empty">
+            {% if roster.bosses %}
+            No hay bosses activos. Restaura alguno para volver a marcar restricciones y planificarlo.
+            {% else %}
+            Carga una API key válida para empezar a marcar restricciones.
+            {% endif %}
+        </div>
         {% endif %}
     </div>
-    {% endif %}
 </article>

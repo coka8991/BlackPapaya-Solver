@@ -45,6 +45,8 @@ from services import (
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates.env.auto_reload = True
+templates.env.cache = {}
 
 
 @dataclass

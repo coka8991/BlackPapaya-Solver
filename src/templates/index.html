@@ -227,8 +227,40 @@
             margin-bottom: 1rem;
         }
 
+        .section-head-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         .section-head p {
             margin: 0;
+        }
+
+        .collapse-toggle {
+            background: rgba(243, 239, 227, 0.06);
+            color: var(--ink);
+            border: 1px solid var(--border);
+            font-weight: 600;
+            padding-inline: 0.95rem;
+        }
+
+        .collapse-toggle .label-expand {
+            display: none;
+        }
+
+        .collapse-toggle[aria-expanded="false"] .label-collapse {
+            display: none;
+        }
+
+        .collapse-toggle[aria-expanded="false"] .label-expand {
+            display: inline;
+        }
+
+        .collapsible-content[hidden] {
+            display: none;
         }
 
         .boss-list {
@@ -497,6 +529,19 @@
 
         {% include "partials/app_shell.html" %}
     </main>
+
+    <script>
+        window.toggleRestrictionsSection = function (button, contentId) {
+            const content = document.getElementById(contentId);
+            if (!content) {
+                return;
+            }
+
+            const isExpanded = button.getAttribute("aria-expanded") !== "false";
+            content.hidden = isExpanded;
+            button.setAttribute("aria-expanded", String(!isExpanded));
+        };
+    </script>
 </body>
 
 </html>
